@@ -1,0 +1,46 @@
+﻿https://www.tutorialspoint.com/apache_storm/apache_storm_quick_guide.htm
+
+Tuple  元组是Storm中的主要数据结构。 它是有序元素的列表。默认情况下，元组支持所有数据类型。 
+       通常，将其建模为一组逗号分隔的值，然后传递给Storm集群。
+Stream
+Spouts 流的来源。 通常，Storm接受原始数据中的输入数据诸如Twitter Streaming API，Apache Kafka队列，Kestrel队列，
+      等等。否则，您可以编写spout以从数据源读取数据。“ ISpout”是实现喷口的核心接口。特定的接口是IRichSpout，BaseRichSpout，KafkaSpout等。
+	  
+Bolts  Bolt是逻辑处理单元。 喷Spout将数据传递给Bolt处理并产生新的输出流。 Bolt可以执行过滤，聚合，联接，与数据源交互的操作
+	  和数据库。 螺栓接收数据并发出一个或多个螺栓。 “ IBolt”是实现螺栓的核心接口。 一些常见的接口是IRichBolt，IBasicBolt等。
+-------------------------------------------------------------------------
+	  
+核心概念：
+Topology          Storm keeps the topology always running, until you kill the topology. Apache Storm’s main
+                 job is to run the topology and will run any number of topology at a given time.
+				 
+Tasks            a task is either the execution of a spout or a bolt. At a given time, each spout and bolt can have multiple
+                  instances running in multiple separate threads.   
+				  
+Workers          一个Topology在多个工作节点上以分布式方式运行。 Strom传递任务
+                 在所有工作节点上均匀分布。 The worker node’s role is to listen for jobs and start or stop the processes whenever a new job arrives.
+
+Stream Grouping    Stream grouping controls how the tuples are routed in the topology and helps us to understand the tuples flow in the topology，有四种：
+                    (1)Shuffle Grouping   (2)Field Grouping  (3)Global Grouping  (4)All Grouping
+					
+----------------------------------------------------------------------------------------------------------------------------------------		
+架构：	
+Nimbus        是Storm集群的主节点。 群集中的所有其他节点称为工作节点。 主节点负责在所有工作节点之间分配数据，将任务分配给工作节点并监视故障。
+Supervisor    接收nimbus给出的指令的节点称为Supervisor。 Supervisor具有多个工作程序，它管理工作程序以完成nimbus分配的任务。	
+Worker process ：工作进程将执行与特定Topology(拓扑)相关的任务。 工作进程不会单独运行任务，而是创建执行程序并要求他们执行特定任务。 一个工作进程将有多个执行程序。 
+Executor         An executor is nothing but a single thread spawn(产生) by a worker process. An executor runs one or more tasks but only for a specific spout or bolt.  
+Task             A task performs actual data processing. So, it is either a spout or a bolt.
+ZooKeeper framework     1 协调器 
+						2 Nimbus is stateless, so it depends on ZooKeeper to monitor the working node status.
+                        3 ZooKeeper helps the supervisor to interact with the nimbus.
+						4 It is responsible to maintain the state of nimbus and supervisor
+ Since the state is available in Apache ZooKeeper, a failed nimbus can be restarted and made to work from
+ where it left. Usually, service monitoring tools like monit will monitor Nimbus and restart it if there is any failure.	
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+Stream Grouping
+	设计拓扑时，您需要做的最重要的事情之一就是：定义组件之间如何交换数据（bolt如何处理流）
+	Stream Grouping指定每个Bolts消费哪些流，以及流的消费方式。
+	
+	1> Shuffle Grouping   :将源发出的每个元组发送到随机选择的保证每个消费者将收到相同数量的元组。
+	2> Fields Grouping    :指定值的tuple发送到同一个bolt
